@@ -1,0 +1,20 @@
+{
+  "name": "shawwite-fruits-santorini",
+  "version": "3.0.0",
+  "description": "ShawWite Fruits — Santorini Neumorphic Edition (Production App with Admin, Seller, Pembeli & MySQL)",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "start": "node scripts/dev.js",
+    "db:seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "shawwite",
+    "fruits",
+    "santorini",
+    "neumorphic",
+    "php",
+    "mysql"
+  ],
+  "author": "ShawWite Fruits",
+  "license": "MIT"
+}

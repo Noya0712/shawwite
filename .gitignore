@@ -1,0 +1,55 @@
+# ==============================================================================
+# SHAWWITE FRUITS — LARAVEL 11 & NODE.JS GITIGNORE (KEAMANAN GITHUB)
+# ==============================================================================
+
+# 1. File Environment & Rahasia Kredensial (WAJIB DIABAIKAN - JANGAN DIUPLOAD!)
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+
+# 2. Folder Dependensi Pihak Ketiga (Ukuran Besar - Diinstal via composer/npm)
+/vendor/
+/node_modules/
+
+# 3. File Sesi, Cache, dan Log Runtime Laravel (Berisi Data Sesi & Path Lokal)
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*.php
+/storage/*.key
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
+
+# 4. File Build & RuntimeSementara
+/public/build
+/public/hot
+/public/storage
+.phpunit.result.cache
+.phpunit.cache
+
+# 5. File Database Lokal SQLite / Dump Sementara
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# 6. File Mockup Referensi Desain Sementara (Tidak Diperlukan di Production)
+sampel login.png
+sampel register.png
+
+# 7. File Sistem Operasi & Editor / IDE Lokal
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+*.swp
+*.swo
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
