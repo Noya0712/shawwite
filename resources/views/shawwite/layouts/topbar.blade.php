@@ -41,14 +41,14 @@
 
           <!-- Area User Aktif & Logout (Tampil saat sudah login) -->
           <div id="loggedInUserCluster" style="display: none; align-items: center; gap: 10px;">
-            <button type="button" class="neu-pill-btn" style="padding: 8px 16px; height: 50px; font-size: 0.82rem;" onclick="window.openAuthModal()" title="Ganti Role / Info Akun">
+            <button type="button" class="neu-pill-btn" style="padding: 8px 16px; height: 50px; font-size: 0.82rem;" onclick="window.openProfileModal()" title="Lihat Profil / Edit Toko">
               <span>👤</span>
               <span id="activeAccountLabel">Akun</span>
             </button>
             <button type="button" class="btn btn-danger" style="padding: 8px 16px; height: 50px; font-size: 0.82rem;" onclick="window.logoutUser()" title="Keluar dari Akun">
               Keluar
             </button>
-            <div class="avatar-frame" onclick="window.openAuthModal()" title="Profil Pengguna">
+            <div class="avatar-frame" onclick="window.openProfileModal()" title="Profil &amp; Edit Toko">
               <img 
                 id="headerAvatarImg"
                 src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" 

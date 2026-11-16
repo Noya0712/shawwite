@@ -249,6 +249,15 @@
       sidebarLoginText.textContent = user ? 'Akun' : 'Login';
     }
 
+    const btnNavProfile = document.getElementById('btnNavProfile');
+    const navProfileText = document.getElementById('navProfileText');
+    if (btnNavProfile) {
+      btnNavProfile.style.display = user ? 'flex' : 'none';
+      if (navProfileText && user) {
+        navProfileText.textContent = (role === 'seller') ? 'Toko' : 'Profil';
+      }
+    }
+
     if (modalCurrentUserName) {
       modalCurrentUserName.textContent = user
         ? `${user.nama} (@${user.username} — ${role.toUpperCase()})`
@@ -259,8 +268,11 @@
       btnLogoutModal.style.display = user ? 'inline-flex' : 'none';
     }
 
-    if (avatarImg && user && user.avatar_url) {
-      avatarImg.src = user.avatar_url;
+    if (avatarImg && user) {
+      const defaultAv = (user.jenis_kelamin === 'Perempuan')
+        ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80'
+        : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80';
+      avatarImg.src = user.avatar_url || defaultAv;
     }
 
     // Render Bar Switcher Cepat untuk Admin & Seller di bawah sapaan
@@ -1379,27 +1391,142 @@
     if (!state.currentUser) {
       window.location.href = 'login.php';
     } else {
-      window.openAuthModal();
+      window.openProfileModal();
     }
   };
 
   /**
-   * Ketika pengguna klik tombol "Pilih & Beli":
-   * - Jika belum login (Guest), langsung diarahkan ke halaman login.php!
-   * - Jika sudah login, membuka modal pemilihan jumlah & kontak WA Seller.
+   * Modal Profil Pengguna & Edit Toko Seller
    */
-  window.handleBuyButtonClick = (productId) => {
-    if (!state.currentUser) {
-      showToast('Silakan login terlebih dahulu untuk melakukan pembelian...', '🔒');
-      setTimeout(() => {
-        window.location.href = `login.php?reason=buy&product=${encodeURIComponent(productId)}`;
-      }, 450);
+  window.openProfileModal = () => {
+    const user = state.currentUser;
+    if (!user) {
+      window.location.href = 'login.php';
       return;
     }
-    window.openDetailModal(productId);
+
+    const modal = document.getElementById('profileModal');
+    if (!modal) return;
+
+    const avatarPreview = document.getElementById('profModalAvatarPreview');
+    const avatarInput = document.getElementById('profAvatarUrl');
+    const roleBadge = document.getElementById('profRoleBadge');
+    const title = document.getElementById('profModalTitle');
+    const subtitle = document.getElementById('profModalSubtitle');
+    const tabGeneralLabel = document.getElementById('tabProfGeneralLabel');
+    const sellerFields = document.getElementById('sellerStoreFields');
+
+    const defaultAv = (user.jenis_kelamin === 'Perempuan')
+      ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80'
+      : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80';
+
+    if (avatarPreview) avatarPreview.src = user.avatar_url || defaultAv;
+    if (avatarInput) avatarInput.value = user.avatar_url || '';
+
+    if (roleBadge) {
+      roleBadge.className = `role-badge role-${user.role}`;
+      roleBadge.textContent = user.role.toUpperCase();
+    }
+
+    if (user.role === 'seller') {
+      if (title) title.textContent = 'Profil & Pengaturan Toko';
+      if (subtitle) subtitle.textContent = 'Kelola detail lapak toko, kebun, kontak WA, dan foto profil Anda.';
+      if (tabGeneralLabel) tabGeneralLabel.textContent = '🏪 Toko & Profil';
+      if (sellerFields) {
+        sellerFields.style.display = 'block';
+        const namaTokoEl = document.getElementById('profNamaToko');
+        const deskripsiTokoEl = document.getElementById('profDeskripsiToko');
+        if (namaTokoEl) namaTokoEl.value = user.nama_toko || user.nama || '';
+        if (deskripsiTokoEl) deskripsiTokoEl.value = user.deskripsi_toko || '';
+      }
+    } else {
+      if (title) title.textContent = 'Profil Pengguna';
+      if (subtitle) subtitle.textContent = 'Kelola identitas, jenis kelamin, foto profil, dan keamanan akun Anda.';
+      if (tabGeneralLabel) tabGeneralLabel.textContent = '👤 Data Profil';
+      if (sellerFields) sellerFields.style.display = 'none';
+    }
+
+    const namaInput = document.getElementById('profNama');
+    if (namaInput) namaInput.value = user.nama || '';
+
+    const waInput = document.getElementById('profNoWa');
+    if (waInput) waInput.value = user.no_wa || '';
+
+    const alamatInput = document.getElementById('profAlamat');
+    if (alamatInput) alamatInput.value = user.alamat || '';
+
+    // Gender radio selection
+    const gender = user.jenis_kelamin || 'Laki-laki';
+    const radioL = document.querySelector('input[name="prof_gender"][value="Laki-laki"]');
+    const radioP = document.querySelector('input[name="prof_gender"][value="Perempuan"]');
+    const pillL = document.getElementById('profGenderL');
+    const pillP = document.getElementById('profGenderP');
+
+    if (gender === 'Perempuan') {
+      if (radioP) radioP.checked = true;
+      if (pillP) pillP.classList.add('selected');
+      if (pillL) pillL.classList.remove('selected');
+    } else {
+      if (radioL) radioL.checked = true;
+      if (pillL) pillL.classList.add('selected');
+      if (pillP) pillP.classList.remove('selected');
+    }
+
+    // Reset password inputs
+    const pwdCurrent = document.getElementById('pwdCurrent');
+    const pwdNew = document.getElementById('pwdNew');
+    const pwdConfirm = document.getElementById('pwdConfirm');
+    if (pwdCurrent) pwdCurrent.value = '';
+    if (pwdNew) pwdNew.value = '';
+    if (pwdConfirm) pwdConfirm.value = '';
+
+    window.switchProfileTab('general');
+    modal.classList.add('active');
+  };
+
+  window.closeProfileModal = () => {
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.classList.remove('active');
+  };
+
+  window.switchProfileTab = (tab) => {
+    const formProf = document.getElementById('profileForm');
+    const formPwd = document.getElementById('passwordResetForm');
+    const btnGen = document.getElementById('tabProfBtnGeneral');
+    const btnSec = document.getElementById('tabProfBtnSecurity');
+    if (!formProf || !formPwd) return;
+
+    if (tab === 'general') {
+      formProf.style.display = 'block';
+      formPwd.style.display = 'none';
+      if (btnGen) btnGen.className = 'btn btn-primary';
+      if (btnSec) btnSec.className = 'btn btn-secondary';
+    } else {
+      formProf.style.display = 'none';
+      formPwd.style.display = 'block';
+      if (btnGen) btnGen.className = 'btn btn-secondary';
+      if (btnSec) btnSec.className = 'btn btn-primary';
+    }
+  };
+
+  window.pickPresetAvatar = (type) => {
+    let url = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80';
+    if (type === 'female') {
+      url = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80';
+    } else if (type === 'orchard') {
+      url = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80';
+    }
+    const avatarInput = document.getElementById('profAvatarUrl');
+    const avatarPreview = document.getElementById('profModalAvatarPreview');
+    if (avatarInput) avatarInput.value = url;
+    if (avatarPreview) avatarPreview.src = url;
   };
 
   window.openAuthModal = () => {
+    if (state.currentUser) {
+      window.openProfileModal();
+      return;
+    }
     renderDemoAccountsModal();
     document.getElementById('authModal').classList.add('active');
   };
@@ -1884,6 +2011,147 @@
   if (authModalEl) {
     authModalEl.addEventListener('click', (e) => {
       if (e.target.id === 'authModal') window.closeAuthModal();
+    });
+  }
+
+  const profileModalEl = document.getElementById('profileModal');
+  if (profileModalEl) {
+    profileModalEl.addEventListener('click', (e) => {
+      if (e.target.id === 'profileModal') window.closeProfileModal();
+    });
+  }
+
+  // Profile Form Submission Handler
+  const profileForm = document.getElementById('profileForm');
+  if (profileForm) {
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nama = document.getElementById('profNama').value.trim();
+      const jenisKelamin = document.querySelector('input[name="prof_gender"]:checked')?.value || 'Laki-laki';
+      const noWa = document.getElementById('profNoWa').value.trim();
+      const alamat = document.getElementById('profAlamat').value.trim();
+      const avatarUrl = document.getElementById('profAvatarUrl').value.trim();
+      const namaToko = document.getElementById('profNamaToko')?.value.trim() || '';
+      const deskripsiToko = document.getElementById('profDeskripsiToko')?.value.trim() || '';
+
+      const btn = document.getElementById('btnSaveProfile');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+      }
+
+      try {
+        const res = await apiRequest('profile_update', 'POST', {
+          nama,
+          jenis_kelamin: jenisKelamin,
+          no_wa: noWa,
+          alamat,
+          avatar_url: avatarUrl,
+          nama_toko: namaToko,
+          deskripsi_toko: deskripsiToko
+        });
+
+        if (!res.ok) {
+          showToast(res.message || 'Gagal memperbarui profil', '⚠️');
+          return;
+        }
+
+        state.currentUser = res.currentUser;
+        if (res.products) state.products = res.products;
+        applyRolePermissionsUI();
+        renderCatalog();
+        renderDashboard();
+        window.closeProfileModal();
+        showToast(res.message || 'Profil berhasil diperbarui!', '✨');
+      } catch (err) {
+        showToast(err.message || 'Terjadi kesalahan sistem', '⚠️');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan Perubahan';
+        }
+      }
+    });
+  }
+
+  // Gender selection toggle in profile modal
+  document.querySelectorAll('input[name="prof_gender"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const selected = document.querySelector('input[name="prof_gender"]:checked')?.value;
+      const pillL = document.getElementById('profGenderL');
+      const pillP = document.getElementById('profGenderP');
+      if (pillL && pillP) {
+        if (selected === 'Perempuan') {
+          pillP.classList.add('selected');
+          pillL.classList.remove('selected');
+        } else {
+          pillL.classList.add('selected');
+          pillP.classList.remove('selected');
+        }
+      }
+    });
+  });
+
+  // Avatar URL live preview in profile modal
+  const profAvatarUrl = document.getElementById('profAvatarUrl');
+  if (profAvatarUrl) {
+    profAvatarUrl.addEventListener('input', () => {
+      const preview = document.getElementById('profModalAvatarPreview');
+      if (preview && profAvatarUrl.value.trim()) {
+        preview.src = profAvatarUrl.value.trim();
+      }
+    });
+  }
+
+  // Password Reset Form Submission Handler
+  const passwordResetForm = document.getElementById('passwordResetForm');
+  if (passwordResetForm) {
+    passwordResetForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById('pwdCurrent').value;
+      const newPassword = document.getElementById('pwdNew').value;
+      const confirmPassword = document.getElementById('pwdConfirm').value;
+
+      if (newPassword.length < 4) {
+        showToast('Password baru minimal 4 karakter!', '⚠️');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        showToast('Konfirmasi password tidak cocok!', '⚠️');
+        return;
+      }
+
+      const btn = document.getElementById('btnSavePassword');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+      }
+
+      try {
+        const res = await apiRequest('password_reset', 'POST', {
+          current_password: currentPassword,
+          new_password: newPassword,
+          confirm_password: confirmPassword
+        });
+
+        if (!res.ok) {
+          showToast(res.message || 'Gagal mereset password', '⚠️');
+          return;
+        }
+
+        document.getElementById('pwdCurrent').value = '';
+        document.getElementById('pwdNew').value = '';
+        document.getElementById('pwdConfirm').value = '';
+        window.closeProfileModal();
+        showToast(res.message || 'Password berhasil diperbarui!', '🔒');
+      } catch (err) {
+        showToast(err.message || 'Gagal mereset password', '⚠️');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '🔒 Perbarui Password';
+        }
+      }
     });
   }
 

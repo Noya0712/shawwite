@@ -90,9 +90,70 @@
     <section class="auth-panel-wrap">
       <div class="auth-panel">
         <h2 class="auth-heading">Create Account</h2>
-        <p class="auth-subheading">Daftar akun untuk mulai berbelanja di ShawWite Fruits</p>
+        <p class="auth-subheading" id="regSubheading">Daftar akun untuk mulai berbelanja di ShawWite Fruits</p>
 
         <form id="registerPageForm" novalidate>
+          <!-- Pilihan Role Akun: Pembeli atau Seller -->
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #123B70; margin-bottom: 6px;">
+              Pilih Jenis Akun:
+            </div>
+            <div class="role-choice-group">
+              <label class="role-choice-card selected" id="cardRolePembeli">
+                <input type="radio" name="register_role" value="pembeli" checked />
+                <span class="role-choice-icon">🛍️</span>
+                <span class="role-choice-title">Pembeli</span>
+                <span class="role-choice-desc">Beli buah segar &amp; review</span>
+              </label>
+
+              <label class="role-choice-card" id="cardRoleSeller">
+                <input type="radio" name="register_role" value="seller" />
+                <span class="role-choice-icon">🏪</span>
+                <span class="role-choice-title">Seller</span>
+                <span class="role-choice-desc">Buka toko &amp; jual buah</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Pilihan Jenis Kelamin -->
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #123B70; margin-bottom: 6px;">
+              Jenis Kelamin:
+            </div>
+            <div class="gender-choice-group">
+              <label class="gender-choice-pill selected" id="pillGenderL">
+                <input type="radio" name="gender" value="Laki-laki" checked />
+                <span>👨 Laki-laki</span>
+              </label>
+              <label class="gender-choice-pill" id="pillGenderP">
+                <input type="radio" name="gender" value="Perempuan" />
+                <span>👩 Perempuan</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Field Khusus Seller: Nama Toko / Kebun (Tampil saat Seller dipilih) -->
+          <div class="field-wrapper" id="wrapSellerStore" style="display: none;">
+            <div class="auth-input-capsule" id="capsuleStoreName">
+              <span class="field-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+                  <path d="M2 7h20"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                id="regStoreName"
+                name="store_name"
+                placeholder="Nama Toko / Kebun Buah"
+                aria-label="Nama Toko / Kebun Buah"
+              />
+            </div>
+            <div id="errorStoreName" class="field-error-msg" role="alert"></div>
+          </div>
+
           <!-- Field 1: Full Name -->
           <div class="field-wrapper">
             <div class="auth-input-capsule" id="capsuleFullName">
@@ -300,9 +361,56 @@
     bindPasswordToggle('btnToggleRegPass', 'regPassword', 'eyeIconRegPass');
     bindPasswordToggle('btnToggleRegConfirm', 'regConfirmPassword', 'eyeIconRegConfirm');
 
+    // Role selection handling (Pembeli vs Seller)
+    const cardRolePembeli = document.getElementById('cardRolePembeli');
+    const cardRoleSeller = document.getElementById('cardRoleSeller');
+    const wrapSellerStore = document.getElementById('wrapSellerStore');
+    const regSubheading = document.getElementById('regSubheading');
+
+    function updateRoleUI() {
+      const selectedRole = document.querySelector('input[name="register_role"]:checked')?.value || 'pembeli';
+      if (selectedRole === 'seller') {
+        cardRoleSeller.classList.add('selected');
+        cardRolePembeli.classList.remove('selected');
+        wrapSellerStore.style.display = 'block';
+        regSubheading.textContent = 'Daftar sebagai Seller untuk membuka toko buah & kelola produk';
+      } else {
+        cardRolePembeli.classList.add('selected');
+        cardRoleSeller.classList.remove('selected');
+        wrapSellerStore.style.display = 'none';
+        regSubheading.textContent = 'Daftar akun untuk mulai berbelanja di ShawWite Fruits';
+      }
+    }
+
+    document.querySelectorAll('input[name="register_role"]').forEach(radio => {
+      radio.addEventListener('change', updateRoleUI);
+    });
+
+    // Gender selection handling
+    const pillGenderL = document.getElementById('pillGenderL');
+    const pillGenderP = document.getElementById('pillGenderP');
+
+    function updateGenderUI() {
+      const selectedGender = document.querySelector('input[name="gender"]:checked')?.value || 'Laki-laki';
+      if (selectedGender === 'Perempuan') {
+        pillGenderP.classList.add('selected');
+        pillGenderL.classList.remove('selected');
+      } else {
+        pillGenderL.classList.add('selected');
+        pillGenderP.classList.remove('selected');
+      }
+    }
+
+    document.querySelectorAll('input[name="gender"]').forEach(radio => {
+      radio.addEventListener('change', updateGenderUI);
+    });
+
     document.getElementById('registerPageForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      const role = document.querySelector('input[name="register_role"]:checked')?.value || 'pembeli';
+      const gender = document.querySelector('input[name="gender"]:checked')?.value || 'Laki-laki';
+      const storeName = document.getElementById('regStoreName')?.value.trim() || '';
       const fullName = document.getElementById('regFullName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value;
@@ -312,6 +420,7 @@
       setFieldError('capsuleRegEmail', 'errorRegEmail', '');
       setFieldError('capsuleRegPass', 'errorRegPass', '');
       setFieldError('capsuleRegConfirm', 'errorRegConfirm', '');
+      if (document.getElementById('errorStoreName')) setFieldError('capsuleStoreName', 'errorStoreName', '');
 
       let hasError = false;
 
@@ -360,7 +469,10 @@
             full_name: fullName,
             email: email,
             password: password,
-            confirm_password: confirmPassword
+            confirm_password: confirmPassword,
+            role: role,
+            jenis_kelamin: gender,
+            nama_toko: role === 'seller' ? (storeName || fullName + ' Fruit Store') : null
           })
         });
         const data = await res.json();

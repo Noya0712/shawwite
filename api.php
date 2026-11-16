@@ -92,7 +92,7 @@ function getCurrentUser(PDO $pdo): ?array {
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT id, nama, username, email, role, no_wa, alamat, avatar_url, status, created_at FROM users WHERE id = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, nama, username, email, role, jenis_kelamin, no_wa, alamat, nama_toko, deskripsi_toko, avatar_url, status, created_at FROM users WHERE id = ? LIMIT 1');
     $stmt->execute([(int) $userId]);
     $user = $stmt->fetch();
     if (!$user || $user['status'] !== 'aktif') {
@@ -266,8 +266,11 @@ function fetchAllUsers(PDO $pdo): array {
             u.username,
             u.email,
             u.role,
+            u.jenis_kelamin,
             u.no_wa,
             u.alamat,
+            u.nama_toko,
+            u.deskripsi_toko,
             u.avatar_url,
             u.status,
             u.created_at,
@@ -419,7 +422,7 @@ if ($action === 'login') {
 
     // Mode 1: Quick Switch Role / Demo User
     if (!empty($body['quick_user_id'])) {
-        $stmt = $pdo->prepare("SELECT id, nama, username, email, role, no_wa, alamat, avatar_url, status, created_at FROM users WHERE id = ? LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, nama, username, email, role, jenis_kelamin, no_wa, alamat, nama_toko, deskripsi_toko, avatar_url, status, created_at FROM users WHERE id = ? LIMIT 1");
         $stmt->execute([(int) $body['quick_user_id']]);
         $user = $stmt->fetch();
         if (!$user) {
@@ -484,6 +487,19 @@ if ($action === 'register') {
     $password        = (string) ($body['password'] ?? '');
     $confirmPassword = (string) ($body['confirm_password'] ?? $body['password'] ?? '');
     $username        = trim((string) ($body['username'] ?? ''));
+    $role            = strtolower(trim((string) ($body['role'] ?? 'pembeli')));
+    if (!in_array($role, ['pembeli', 'seller'], true)) {
+        $role = 'pembeli';
+    }
+    $jenisKelamin    = trim((string) ($body['jenis_kelamin'] ?? ''));
+    if (!in_array($jenisKelamin, ['Laki-laki', 'Perempuan'], true)) {
+        $jenisKelamin = 'Laki-laki';
+    }
+    $namaToko        = trim((string) ($body['nama_toko'] ?? ''));
+    if ($role === 'seller' && $namaToko === '') {
+        $namaToko = $nama . ' Fruit Store';
+    }
+    $deskripsiToko   = trim((string) ($body['deskripsi_toko'] ?? ($role === 'seller' ? 'Pusat aneka buah segar pilihan terbaik langsung dari kebun.' : '')));
     $noWa            = preg_replace('/[^0-9]/', '', (string) ($body['no_wa'] ?? '6281200000000'));
     $alamat          = trim((string) ($body['alamat'] ?? 'Banyuwangi, Jawa Timur'));
 
@@ -509,7 +525,7 @@ if ($action === 'register') {
         jsonResponse(['ok' => false, 'field' => 'confirm_password', 'message' => 'Passwords do not match.'], 400);
     }
 
-    // Buat username otomatis dari email jika tidak dikirim dari form 4-field Register
+    // Buat username otomatis dari email jika tidak dikirim dari form Register
     if ($username === '') {
         $baseUser = preg_replace('/[^a-z0-9_]/', '', strtolower(explode('@', $email)[0]));
         if ($baseUser === '') {
@@ -539,21 +555,125 @@ if ($action === 'register') {
     }
 
     $hash = password_hash($password, PASSWORD_BCRYPT);
-    $avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+    if ($role === 'seller') {
+        $avatar = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80';
+    } else {
+        $avatar = ($jenisKelamin === 'Perempuan')
+            ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80'
+            : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80';
+    }
 
-    $ins = $pdo->prepare("INSERT INTO users (nama, username, email, password_hash, role, no_wa, alamat, avatar_url, status) VALUES (?, ?, ?, ?, 'pembeli', ?, ?, ?, 'aktif')");
-    $ins->execute([$nama, $username, $email, $hash, $noWa, $alamat, $avatar]);
+    $ins = $pdo->prepare("INSERT INTO users (nama, username, email, password_hash, role, jenis_kelamin, no_wa, alamat, nama_toko, deskripsi_toko, avatar_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif')");
+    $ins->execute([$nama, $username, $email, $hash, $role, $jenisKelamin, $noWa, $alamat, $namaToko ?: null, $deskripsiToko ?: null, $avatar]);
     $newId = (int) $pdo->lastInsertId();
 
     $_SESSION['user_id'] = $newId;
-    $stmt = $pdo->prepare("SELECT id, nama, username, email, role, no_wa, alamat, avatar_url, status, created_at FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, nama, username, email, role, jenis_kelamin, no_wa, alamat, nama_toko, deskripsi_toko, avatar_url, status, created_at FROM users WHERE id = ?");
     $stmt->execute([$newId]);
     $newUser = $stmt->fetch();
 
+    $roleLabel = ($role === 'seller') ? 'Seller' : 'Pembeli';
     jsonResponse([
         'ok'          => true,
-        'message'     => 'Akun berhasil dibuat dan tersimpan di database! Selamat datang, ' . $nama,
+        'message'     => 'Akun ' . $roleLabel . ' berhasil dibuat! Selamat datang di ShawWite Fruits, ' . $nama,
         'currentUser' => $newUser
+    ]);
+}
+
+// ============================================================================
+// PROFILE & TOKO UPDATE (UNTUK USER & SELLER YANG SEDANG LOGIN)
+// ============================================================================
+if ($action === 'profile_update') {
+    if (!$currentUser) {
+        jsonResponse(['ok' => false, 'requireLogin' => true, 'message' => 'Silakan login terlebih dahulu untuk memperbarui profil.'], 401);
+    }
+
+    $body = getJsonBody();
+    $nama = trim((string) ($body['nama'] ?? ''));
+    $jenisKelamin = trim((string) ($body['jenis_kelamin'] ?? ''));
+    if (!in_array($jenisKelamin, ['Laki-laki', 'Perempuan'], true)) {
+        $jenisKelamin = $currentUser['jenis_kelamin'] ?? 'Laki-laki';
+    }
+    $avatar = trim((string) ($body['avatar_url'] ?? ''));
+    if ($avatar === '') {
+        $avatar = $currentUser['avatar_url'];
+    }
+    $noWa = preg_replace('/[^0-9]/', '', (string) ($body['no_wa'] ?? $currentUser['no_wa']));
+    $alamat = trim((string) ($body['alamat'] ?? $currentUser['alamat']));
+
+    $namaToko = trim((string) ($body['nama_toko'] ?? ($currentUser['nama_toko'] ?? '')));
+    $deskripsiToko = trim((string) ($body['deskripsi_toko'] ?? ($currentUser['deskripsi_toko'] ?? '')));
+
+    if ($nama === '') {
+        jsonResponse(['ok' => false, 'message' => 'Nama tidak boleh kosong.'], 400);
+    }
+
+    // Optional reset password dalam edit profil
+    $newPassword = (string) ($body['new_password'] ?? '');
+    if ($newPassword !== '') {
+        if (strlen($newPassword) < 4) {
+            jsonResponse(['ok' => false, 'message' => 'Password baru minimal 4 karakter.'], 400);
+        }
+        $confirmPassword = (string) ($body['confirm_password'] ?? '');
+        if ($confirmPassword !== '' && $newPassword !== $confirmPassword) {
+            jsonResponse(['ok' => false, 'message' => 'Konfirmasi password baru tidak cocok.'], 400);
+        }
+        $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
+        $upd = $pdo->prepare("UPDATE users SET nama = ?, jenis_kelamin = ?, avatar_url = ?, no_wa = ?, alamat = ?, nama_toko = ?, deskripsi_toko = ?, password_hash = ? WHERE id = ?");
+        $upd->execute([$nama, $jenisKelamin, $avatar, $noWa, $alamat, $namaToko ?: null, $deskripsiToko ?: null, $newHash, (int) $currentUser['id']]);
+    } else {
+        $upd = $pdo->prepare("UPDATE users SET nama = ?, jenis_kelamin = ?, avatar_url = ?, no_wa = ?, alamat = ?, nama_toko = ?, deskripsi_toko = ? WHERE id = ?");
+        $upd->execute([$nama, $jenisKelamin, $avatar, $noWa, $alamat, $namaToko ?: null, $deskripsiToko ?: null, (int) $currentUser['id']]);
+    }
+
+    // Refresh user data
+    $stmt = $pdo->prepare("SELECT id, nama, username, email, role, jenis_kelamin, no_wa, alamat, nama_toko, deskripsi_toko, avatar_url, status, created_at FROM users WHERE id = ?");
+    $stmt->execute([(int) $currentUser['id']]);
+    $updatedUser = $stmt->fetch();
+
+    jsonResponse([
+        'ok'          => true,
+        'message'     => ($currentUser['role'] === 'seller') ? 'Profil & Toko berhasil diperbarui!' : 'Profil Anda berhasil diperbarui!',
+        'currentUser' => $updatedUser,
+        'products'    => fetchAllProducts($pdo)
+    ]);
+}
+
+// ============================================================================
+// RESET PASSWORD KHUSUS (DENGAN VERIFIKASI PASSWORD LAMA)
+// ============================================================================
+if ($action === 'password_reset') {
+    if (!$currentUser) {
+        jsonResponse(['ok' => false, 'requireLogin' => true, 'message' => 'Silakan login terlebih dahulu.'], 401);
+    }
+    $body = getJsonBody();
+    $oldPassword = (string) ($body['current_password'] ?? '');
+    $newPassword = (string) ($body['new_password'] ?? '');
+    $confirmPassword = (string) ($body['confirm_password'] ?? '');
+
+    if ($newPassword === '' || strlen($newPassword) < 4) {
+        jsonResponse(['ok' => false, 'message' => 'Password baru minimal 4 karakter.'], 400);
+    }
+    if ($confirmPassword !== '' && $newPassword !== $confirmPassword) {
+        jsonResponse(['ok' => false, 'message' => 'Konfirmasi password baru tidak cocok.'], 400);
+    }
+
+    if ($oldPassword !== '') {
+        $chk = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+        $chk->execute([(int) $currentUser['id']]);
+        $hash = $chk->fetchColumn();
+        if (!password_verify($oldPassword, $hash)) {
+            jsonResponse(['ok' => false, 'message' => 'Password saat ini tidak sesuai.'], 400);
+        }
+    }
+
+    $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
+    $upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+    $upd->execute([$newHash, (int) $currentUser['id']]);
+
+    jsonResponse([
+        'ok'      => true,
+        'message' => 'Password berhasil diperbarui dengan aman!'
     ]);
 }
 

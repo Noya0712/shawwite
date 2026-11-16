@@ -25,8 +25,11 @@ CREATE TABLE `users` (
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `password_hash` VARCHAR(255) NOT NULL,
   `role` ENUM('admin', 'seller', 'pembeli') NOT NULL DEFAULT 'pembeli',
+  `jenis_kelamin` ENUM('Laki-laki', 'Perempuan') DEFAULT NULL,
   `no_wa` VARCHAR(30) DEFAULT '6281234567890',
   `alamat` VARCHAR(255) DEFAULT 'Banyuwangi, Jawa Timur',
+  `nama_toko` VARCHAR(100) DEFAULT NULL,
+  `deskripsi_toko` TEXT DEFAULT NULL,
   `avatar_url` TEXT DEFAULT NULL,
   `status` ENUM('aktif', 'nonaktif') NOT NULL DEFAULT 'aktif',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -38,15 +41,15 @@ CREATE TABLE `users` (
 -- seller123  -> $2y$10$bDm2SRDWkY3yZoMWYI6mHuSzij//HhA7YU7eOPMNffZV5TG9BIcSe
 -- pembeli123 -> $2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK
 
-INSERT INTO `users` (`id`, `nama`, `username`, `email`, `password_hash`, `role`, `no_wa`, `alamat`, `avatar_url`, `status`, `created_at`) VALUES
-(1, 'Budi Santoso (Admin Utama)', 'admin', 'admin@shawwite.com', '$2y$10$X1tqP7SsEiV0d107E8O7qe/b5ukEy/v1KH9yMCdsp68v45DYk67HS', 'admin', '6281133445566', 'Kantor Pusat ShawWite, Banyuwangi', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-06-10 08:30:00'),
-(2, 'Nadia Putri (Admin Operasional)', 'nadia_admin', 'nadia@shawwite.com', '$2y$10$X1tqP7SsEiV0d107E8O7qe/b5ukEy/v1KH9yMCdsp68v45DYk67HS', 'admin', '6281122334455', 'Genteng, Banyuwangi', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-07-14 09:15:00'),
-(3, 'Kebun ShawWite Utama', 'seller', 'seller@shawwite.com', '$2y$10$bDm2SRDWkY3yZoMWYI6mHuSzij//HhA7YU7eOPMNffZV5TG9BIcSe', 'seller', '6281234567890', 'Kebun Nusantara, Banyuwangi', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-08-01 10:00:00'),
-(4, 'Hendi Banyuwangi Fresh', 'hendi_orchard', 'hendi@shawwite.com', '$2y$10$bDm2SRDWkY3yZoMWYI6mHuSzij//HhA7YU7eOPMNffZV5TG9BIcSe', 'seller', '6281398765432', 'Glagah Orchard, Banyuwangi', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-08-19 11:20:00'),
-(5, 'Siti Aminah', 'pembeli', 'pembeli@shawwite.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', '6285711223344', 'Jl. Ahmad Yani No. 45, Banyuwangi', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-09-05 14:10:00'),
-(6, 'Rizky Pratama', 'rizky_pratama', 'rizky@gmail.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', '6281299887766', 'Rogojampi, Banyuwangi', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-10-12 16:45:00'),
-(7, 'Dewi Lestari', 'dewi_lestari', 'dewi@gmail.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', '6282133445566', 'Giri, Banyuwangi', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-11-02 13:05:00'),
-(8, 'Fajar Nugroho', 'fajar_nugroho', 'fajar@gmail.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', '6287855667788', 'Kalipuro, Banyuwangi', 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80', 'nonaktif', '2026-11-10 17:30:00');
+INSERT INTO `users` (`id`, `nama`, `username`, `email`, `password_hash`, `role`, `jenis_kelamin`, `no_wa`, `alamat`, `nama_toko`, `deskripsi_toko`, `avatar_url`, `status`, `created_at`) VALUES
+(1, 'Budi Santoso (Admin Utama)', 'admin', 'admin@shawwite.com', '$2y$10$X1tqP7SsEiV0d107E8O7qe/b5ukEy/v1KH9yMCdsp68v45DYk67HS', 'admin', 'Laki-laki', '6281133445566', 'Kantor Pusat ShawWite, Banyuwangi', NULL, NULL, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-06-10 08:30:00'),
+(2, 'Nadia Putri (Admin Operasional)', 'nadia_admin', 'nadia@shawwite.com', '$2y$10$X1tqP7SsEiV0d107E8O7qe/b5ukEy/v1KH9yMCdsp68v45DYk67HS', 'admin', 'Perempuan', '6281122334455', 'Genteng, Banyuwangi', NULL, NULL, 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-07-14 09:15:00'),
+(3, 'Kebun ShawWite Utama', 'seller', 'seller@shawwite.com', '$2y$10$bDm2SRDWkY3yZoMWYI6mHuSzij//HhA7YU7eOPMNffZV5TG9BIcSe', 'seller', 'Perempuan', '6281234567890', 'Kebun Nusantara, Banyuwangi', 'Kebun ShawWite Utama', 'Pusat kebun buah segar alami langsung petik di Banyuwangi.', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-08-01 10:00:00'),
+(4, 'Hendi Banyuwangi Fresh', 'hendi_orchard', 'hendi@shawwite.com', '$2y$10$bDm2SRDWkY3yZoMWYI6mHuSzij//HhA7YU7eOPMNffZV5TG9BIcSe', 'seller', 'Laki-laki', '6281398765432', 'Glagah Orchard, Banyuwangi', 'Hendi Glagah Orchard', 'Spesialis Buah Naga merah & Jeruk Siam segar grade A.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-08-19 11:20:00'),
+(5, 'Siti Aminah', 'pembeli', 'pembeli@shawwite.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', 'Perempuan', '6285711223344', 'Jl. Ahmad Yani No. 45, Banyuwangi', NULL, NULL, 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-09-05 14:10:00'),
+(6, 'Rizky Pratama', 'rizky_pratama', 'rizky@gmail.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', 'Laki-laki', '6281299887766', 'Rogojampi, Banyuwangi', NULL, NULL, 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-10-12 16:45:00'),
+(7, 'Dewi Lestari', 'dewi_lestari', 'dewi@gmail.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', 'Perempuan', '6282133445566', 'Giri, Banyuwangi', NULL, NULL, 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80', 'aktif', '2026-11-02 13:05:00'),
+(8, 'Fajar Nugroho', 'fajar_nugroho', 'fajar@gmail.com', '$2y$10$YkNUX1Vj7qRasTF5d2ZFBuJadHv09kKk5GUaqlpoNBiZRPkSBS4sK', 'pembeli', 'Laki-laki', '6287855667788', 'Kalipuro, Banyuwangi', NULL, NULL, 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80', 'nonaktif', '2026-11-10 17:30:00');
 
 -- ----------------------------------------------------------------------------
 -- 2. TABEL PRODUCTS (Katalog Buah Segar)

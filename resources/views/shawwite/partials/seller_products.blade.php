@@ -24,6 +24,9 @@
             <button type="button" id="btnSellerTabForm" class="btn btn-secondary" style="padding: 9px 18px; font-size: 0.84rem;" onclick="window.switchSellerSubTab('crud')">
               🍎 Kelola Produk
             </button>
+            <button type="button" class="btn btn-secondary" style="padding: 9px 18px; font-size: 0.84rem;" onclick="window.openProfileModal()" title="Lihat Profil Toko &amp; Edit Alamat/WA/Logo">
+              🏪 Edit Profil Toko
+            </button>
             <button type="button" class="neu-pill-btn" style="padding: 9px 18px; font-size: 0.84rem; color: var(--azure-accent);" onclick="window.triggerNavAction('catalog')">
               🛍️ Tampilan Dashboard User →
             </button>

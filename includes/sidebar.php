@@ -58,6 +58,15 @@
           <span>Unggulan</span>
         </button>
 
+        <!-- Profil & Toko Saya (Tampil Saat Login) -->
+        <button type="button" id="btnNavProfile" class="nav-pill-item" style="display: none;" onclick="window.openProfileModal()" title="Profil Saya &amp; Edit Toko">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span id="navProfileText">Profil</span>
+        </button>
+
         <!-- MENU LOGIN / KELUAR -->
         <button type="button" id="btnSidebarLogin" class="nav-pill-item" onclick="window.handleSidebarAuthClick()" title="Menu Login / Akun">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
